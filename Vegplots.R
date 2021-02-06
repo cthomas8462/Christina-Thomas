@@ -121,7 +121,7 @@ for (i in 1:length(pheno)){
     
     print(pval)
     print(meannonveg)
-    #print(meanveg)
+    print(meanveg)
     
     #Generate box plots-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     print(ggplot(data = plotthis, 

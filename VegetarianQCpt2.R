@@ -34,53 +34,71 @@ new<-ukbqc%>%select(f.eid,
                     
                     #Category 100106: Meat/fish yesterday. 24HR.
                     f.103000.0.0, f.103140.0.0
-                    )
+)
 
 #column names for tibble
 colnames(new)<- c("FID", 
-                #Category 100052: Diet. Initial assessment
-                "Oily_fish_intake", "Non-oily_fish_intake",
-                "Processed_meat_intake","Poultry_intake",
-                "Beef_intake","Lamb.mutton_intake",
-                "Pork_intake",
+                  #Category 100052: Diet. Initial assessment
+                  "Oily_fish_intake", "Non-oily_fish_intake",
+                  "Processed_meat_intake","Poultry_intake",
+                  "Beef_intake","Lamb.mutton_intake",
+                  "Pork_intake",
                   
-                #Category 100106: Meat/fish yesterday. 24HR.
-                "Meat_consumers","Fish_consumer"
-                 )
+                  #Category 100106: Meat/fish yesterday. 24HR.
+                  "Meat_consumers","Fish_consumer"
+)
 
 
 #Category 100052: keep only those who answered "No"
 #Category 100106: keep only those who answered "No"
 
 #Combine diet data with result from previous QC step finding Carn/Veg
-vegqc
+
 Meal<-vegqc%>%select("FID", "Veg")
 Meal
 
+nrow(new)
+nrow(vegqc)
+
 inner<- merge(new, Meal, by = "FID")
 inner<-as_tibble(inner)
+inner
 inner[,2:11]<-sapply(inner[,2:11], as.character)
 inner%>%filter(Veg=="Vegetarian") #3,321 
+
+nrow(inner)
+#sum(is.na(inner$Oily_fish_intake))
 
 #QC for diet data
 strictvegetarians<-filter(inner, (Veg  == "Vegetarian" & Meat_consumers == "No"))
 strictvegetarians #1046
 
+sum(is.na(strictvegetarians$Veg))
+
 strictvegetarians2<-filter(strictvegetarians, (
-                        (Veg  == "Vegetarian") & 
-                        (Oily_fish_intake =="Never") &
-                        (`Non-oily_fish_intake` =="Never") &
-                        (Processed_meat_intake =="Never") &
-                        (Poultry_intake =="Never") &
-                        (Beef_intake=="Never") &
-                        (Lamb.mutton_intake =="Never") &
-                        (Pork_intake =="Never") 
-                        ))
+    (Veg  == "Vegetarian") & 
+        (Oily_fish_intake =="Never") &
+        (`Non-oily_fish_intake` =="Never") &
+        (Processed_meat_intake =="Never") &
+        (Poultry_intake =="Never") &
+        (Beef_intake=="Never") &
+        (Lamb.mutton_intake =="Never") &
+        (Pork_intake =="Never") 
+))
 
 strictvegetarians2 #713
 
+sum(is.na(strictvegetarians2$Veg))
+
+
 strictvegqc<-vegqc[vegqc$Veg=="Non-vegetarian" | vegqc$FID %in% strictvegetarians2$FID,]
-strictvegqc<-strictvegqc[,c(1, 8)] #132803 participants
+strictvegqc<-strictvegqc[,c("FID", "Veg")] #132803 participants
 strictvegqc<-as_tibble(strictvegqc)
 table(strictvegqc$Veg)
+
+sum(is.na(strictvegqc$Veg))
+
+write.table(strictvegqc, file = "strictvegQC.txt", 
+            sep = "\t", col.names = TRUE, quote = FALSE,
+            row.names = FALSE)
 

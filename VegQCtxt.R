@@ -8,6 +8,11 @@ library(tidyverse)
 ukbveg <- read.delim("UKB34137_QC_and_24HR.txt", header = TRUE, sep="\t")
 ukbveg <- as_tibble(ukbveg)
 
+nrow(ukbveg) #135411 
+
+ukbveg
+#check with identical function ukbveg and bd
+
 #24hr special diet columns
 VegAnswers<-ukbveg%>%select(f.eid, f.20086.0.0, f.20086.1.0,
                             f.20086.2.0, f.20086.3.0, f.20086.4.0)
@@ -25,9 +30,8 @@ VegAnswers[,2:6]<-sapply(VegAnswers[,2:6],
                          mapvalues, c(NA, "Low calorie", "Gluten-free", "Lactose-free", "Other",
                                       "Vegetarian", "Vegan"), c(0,0,0,0,0,1,1))
 
+VegAnswers
 #******************************************************************
-
-
 #Get 24h recall taken data-----------
 daycols<-c("f.20080.0.0", "f.20080.1.0", "f.20080.2.0",
            "f.20080.3.0", "f.20080.4.0")
@@ -46,7 +50,7 @@ bd1<-as.data.frame(bd1)
 bd1<-bd1 %>% mutate (took_24HR = sum)
 bd1<-bd1%>% mutate(took_24HR = replace(took_24HR, took_24HR>0, "Yes")) %>%
     mutate(took_24HR = replace(took_24HR, took_24HR==0, "No"))
-sum(bd1$took_24HR=="Yes") #[1] 211018 **SUCCESS**
+sum(bd1$took_24HR=="Yes") #[1] 135411 **SUCCESS**
 bd1$FID<-ukbveg$f.eid
 bd1<-as_tibble(bd1)
 bd1
@@ -55,16 +59,19 @@ bd1
 ###This section creates a table that has both answers to special diet
 ###columns (Veg0-4) and columns indicating whether people took the
 ###24hr survey (took0-4)
+bd1
 
 TooksurveyAndVeg <- merge(VegAnswers, bd1, by="FID")
 
 TooksurveyAndVeg<-as_tibble(TooksurveyAndVeg)
+TooksurveyAndVeg
 
 colnames(TooksurveyAndVeg)[7:11]<-c("took0", "took1", "took2", "took3", "took4")
 table(TooksurveyAndVeg$took_24HR)
 
 nrow(TooksurveyAndVeg) #[1] 135411
 
+#TooksurveyAndVeg[!complete.cases(TooksurveyAndVeg),]
 
 #initialize answer columns
 TooksurveyAndVeg$Answer0<-"d" #column 13
@@ -187,17 +194,19 @@ Diet$Vegb<-"a" #creating column for final answer
 
 Diet
 
-Diet$Vegb[Diet$Veg == "Non-vegetarian" ]<-0
-Diet$Vegb[Diet$Veg ==  "Vegetarian" ]<-1
+#Diet$Vegb[Diet$Veg == "Non-vegetarian" ]<-0
+#Diet$Vegb[Diet$Veg ==  "Vegetarian" ]<-1
 
-Diet
 
-Diet<-Diet%>%mutate_if(is.character, as.numeric) 
-veg<-Diet%>%select("FID", "Vegb")
+
+#Diet<-Diet%>%mutate_if(is.character, as.numeric) 
+veg<-Diet%>%select("FID", "Veg")
 
 veg
 
-veg%>%filter(Vegb== 1) 
+
+
+veg%>%filter(Veg== "Vegetarian") 
 
 write.table(veg, file = "vegQC.txt", 
             sep = "\t", col.names = TRUE, quote = FALSE,

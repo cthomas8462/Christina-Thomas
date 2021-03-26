@@ -5,7 +5,7 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 
-vegqc<-read.delim("vegQC.txt", header=TRUE, sep="\t")
+vegqc<-read.delim("vegQC.txt", header=TRUE, sep="\t", stringsAsFactors = FALSE)
 
 strictvegqc<-read.delim("strictvegQC.txt", header=TRUE, sep="\t",stringsAsFactors =FALSE)
 
@@ -14,11 +14,18 @@ colnames(vegqc)<- c("FID", "Self_Reported_Vegetarians")
 
 vegqc
 
-vegqc<-vegqc%>%mutate_if(is.character, as.numeric) 
+
+vegqc$Self_Reported_Vegetarians[vegqc$Self_Reported_Vegetarians == "Non-vegetarian" ]<-0
+vegqc$Self_Reported_Vegetarians[vegqc$Self_Reported_Vegetarians ==  "Vegetarian" ]<-1
+
+
+vegqc<-vegqc%>%mutate_if(is.character, as.numeric)
+
+vegqc
 
 
 
-sum(vegqc$Self_Reported_Vegetarians)
+sum(vegqc$Self_Reported_Vegetarians) #3321
 
 
 strictvegqc$Veg[strictvegqc$Veg == "Non-vegetarian" ]<-0
@@ -44,11 +51,13 @@ vegtable<-(combine = merge(vegqc, strictvegqc, by="FID",
 
 vegtable
 
+sum(is.na(vegtable$Strict.Vegetarians))
+
 
 #na.omit(vegtable$Strict.Vegetarians)
 #vegtable<-(!is.na(vegtable$Strict.Vegetarians))
 
-
+vegtable
 
 sum(vegtable$Strict.Vegetarians, na.rm = TRUE)
 sum(vegtable$Self_Reported_Vegetarians)

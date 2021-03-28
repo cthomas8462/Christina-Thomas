@@ -14,9 +14,10 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 
-vegqc<-read.delim("vegQC.txt", header=TRUE, sep="\t")
+vegqc<-read.delim("vegQC_03262021.txt", header=TRUE, sep="\t")
+vegqc<-as_tibble(vegqc)
 
-table(vegqc$Veg) #starting= 3321/ consistent self-reported vegetarians
+table(vegqc$Vegb) #starting= 3321/ consistent self-reported vegetarians
 nrow(vegqc) #135411
 
 bd<-read.table("ukb37330.tab", header=TRUE, sep="\t")
@@ -54,29 +55,20 @@ colnames(new)<- c("FID",
 
 #Combine diet data with result from previous QC step finding Carn/Veg
 
-Meal<-vegqc%>%select("FID", "Veg")
-Meal
-
-nrow(new)
-nrow(vegqc)
-
-inner<- merge(new, Meal, by = "FID")
+inner<- merge(new, vegqc, by = "FID")
 inner<-as_tibble(inner)
 inner
-inner[,2:11]<-sapply(inner[,2:11], as.character)
-inner%>%filter(Veg=="Vegetarian") #3,321 
+#inner[,2:11]<-sapply(inner[,2:11], as.character)
+inner%>%filter(Vegb==1) #3,321 
 
-nrow(inner)
+nrow(inner) #[1] 135411
 #sum(is.na(inner$Oily_fish_intake))
 
 #QC for diet data
-strictvegetarians<-filter(inner, (Veg  == "Vegetarian" & Meat_consumers == "No"))
-strictvegetarians #1046
 
-sum(is.na(strictvegetarians$Veg))
-
-strictvegetarians2<-filter(strictvegetarians, (
-    (Veg  == "Vegetarian") & 
+strictvegetarians2<-filter(inner, (
+    (Vegb  == 1) & 
+        Meat_consumers == "No" &
         (Oily_fish_intake =="Never") &
         (`Non-oily_fish_intake` =="Never") &
         (Processed_meat_intake =="Never") &
@@ -88,17 +80,21 @@ strictvegetarians2<-filter(strictvegetarians, (
 
 strictvegetarians2 #713
 
-sum(is.na(strictvegetarians2$Veg))
+vegqc$strictvegetarian<-0
+vegqc$strictvegetarian[vegqc$FID%in%strictvegetarians2$FID]<-1
 
+colnames(vegqc)<-c("FID", "vegetarian", "strictvegetarian")
+table(vegqc$vegetarian, useNA = "always")
+#     0      1   <NA> 
+#132090   3321      0 
 
-strictvegqc<-vegqc[vegqc$Veg=="Non-vegetarian" | vegqc$FID %in% strictvegetarians2$FID,]
-strictvegqc<-strictvegqc[,c("FID", "Veg")] #132803 participants
-strictvegqc<-as_tibble(strictvegqc)
-table(strictvegqc$Veg)
+table(vegqc$strictvegetarian, useNA = "always")
+#     0      1   <NA> 
+#134698    713      0 
 
-sum(is.na(strictvegqc$Veg))
+vegqc
 
-write.table(strictvegqc, file = "strictvegQC.txt", 
+write.table(vegqc, file = "vegQCparticipantIDs_03262021.txt", 
             sep = "\t", col.names = TRUE, quote = FALSE,
             row.names = FALSE)
 

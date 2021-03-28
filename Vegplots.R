@@ -5,8 +5,10 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 
-vegqc<-read.delim("vegQC.txt", header=TRUE, sep="\t")
-allvegqc<-read.delim("strictandselfreported.txt", header=TRUE, sep="\t")
+vegqc<-read.delim("vegQC_03262021.txt", header=TRUE, sep="\t")
+allvegqc<-read.delim("vegQCparticipantIDs_03262021.txt", header=TRUE, sep="\t")
+
+colnames(allvegqc)<- c("FID", "Self_Reported_Vegetarians", "Strict.Vegetarians" )
 
 allvegqc<-as_tibble(allvegqc)
 sum(allvegqc$Strict.Vegetarians)

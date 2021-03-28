@@ -61,6 +61,7 @@ bd1
 ###24hr survey (took0-4)
 bd1
 
+
 TooksurveyAndVeg <- merge(VegAnswers, bd1, by="FID")
 
 TooksurveyAndVeg<-as_tibble(TooksurveyAndVeg)
@@ -92,7 +93,7 @@ for(instance in 7:11){ #columns 7 through 11 are the "took" columns
     for(row in 1:nrow(TooksurveyAndVeg)){ #loop through every row in the table
         if(TooksurveyAndVeg[row, instance] == 1){ #if they took the survey in this instance
             if(TooksurveyAndVeg[row, instance-5]==1){ #if they had 1 in the same instance of veg
-                TooksurveyAndVeg[row, instance+6]<-"a"
+                TooksurveyAndVeg[row, instance+6]<-"a" 
             }
             else TooksurveyAndVeg[row, instance+6]<-"b"
         }
@@ -109,30 +110,16 @@ TooksurveyAndVeg$Diet3<-"0"
 TooksurveyAndVeg$Diet4<-"0"
 
 #TooksurveyAndVeg2<-TooksurveyAndVeg
-TooksurveyAndVeg
 
-
-#this part takes 20-30 minutes
-# for(instance in 13:17){ #columns 13 through 17 are the "Answer0-4" columns
-#     for(row in 1:nrow(TooksurveyAndVeg)){ #loop through every row in the table
-#         if(TooksurveyAndVeg[row, instance] == "a"){ #if they are vegetarian 
-#             TooksurveyAndVeg[row, instance+5]<- "1"
-#         }
-#         if(TooksurveyAndVeg[row, instance] == "b"){ #if they are meat eaters 
-#             TooksurveyAndVeg[row, instance+5]<-"-100"
-#         }
-#         if(TooksurveyAndVeg[row, instance] == "c"){
-#             TooksurveyAndVeg[row, instance+5]<- "0"
-#         }
-#     } #end inner for loop
-# } #end outer for loop
 
 
 #********************************************************************
 #This above section also be done with subsetting like the following
 #which drastically speeds up the process
 
-
+#set b's to -100 because they once answered that they were not 
+#vegetarian in the survey; we are only looking to designate people 
+#with 100% of answers as yes vegetarian
 
 TooksurveyAndVeg
 
@@ -169,9 +156,7 @@ Diet
 Diet$row_sum = rowSums(Diet[,c(2,3,4,5,6)]) #sum of the rows
 
 Diet
-
-Diet%>%filter(row_sum== 1)
-
+Diet%>%filter(row_sum== 0) #nobody. good.
 
 Diet$Veg<-"a" #creating column for final answer
 
@@ -184,30 +169,20 @@ Diet
 Diet%>%filter(Veg== "Vegetarian") #3321
 Diet%>%filter(Veg== "Non-vegetarian") #132090
 
-#identical(Diet, Diet2) #[1] TRUE
 
-Diet #135,411 TOTAL 
+#Diet #135,411 TOTAL 
 
-Diet<-Diet%>%mutate_if(is.integer, as.character)
+Diet$Vegb<-0 #creating column for final answer
 
-Diet$Vegb<-"a" #creating column for final answer
+Diet$Vegb[Diet$Veg == "Non-vegetarian" ]<-0
+Diet$Vegb[Diet$Veg ==  "Vegetarian" ]<-1
 
-Diet
+sum(Diet$Vegb) #[1] 3321
 
-#Diet$Vegb[Diet$Veg == "Non-vegetarian" ]<-0
-#Diet$Vegb[Diet$Veg ==  "Vegetarian" ]<-1
-
-
-
-#Diet<-Diet%>%mutate_if(is.character, as.numeric) 
-veg<-Diet%>%select("FID", "Veg")
+veg<-Diet%>%select("FID", "Vegb")
 
 veg
 
-
-
-veg%>%filter(Veg== "Vegetarian") 
-
-write.table(veg, file = "vegQC.txt", 
+write.table(veg, file = "vegQC_03262021.txt", 
             sep = "\t", col.names = TRUE, quote = FALSE,
             row.names = FALSE)

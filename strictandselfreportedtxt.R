@@ -5,9 +5,9 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 
-vegqc<-read.delim("vegQC.txt", header=TRUE, sep="\t", stringsAsFactors = FALSE)
+vegqc<-read.delim("vegQC_03262021.txt", header=TRUE, sep="\t", stringsAsFactors = FALSE)
 
-strictvegqc<-read.delim("strictvegQC.txt", header=TRUE, sep="\t",stringsAsFactors =FALSE)
+strictvegqc<-read.delim("vegQCparticipantIDs_03262021.txt", header=TRUE, sep="\t",stringsAsFactors =FALSE)
 
 
 colnames(vegqc)<- c("FID", "Self_Reported_Vegetarians")
@@ -28,8 +28,6 @@ vegqc
 sum(vegqc$Self_Reported_Vegetarians) #3321
 
 
-strictvegqc$Veg[strictvegqc$Veg == "Non-vegetarian" ]<-0
-strictvegqc$Veg[strictvegqc$Veg ==  "Vegetarian" ]<-1
 
 strictvegqc%>%filter(Veg == 1) #713 strictveg
 
@@ -66,3 +64,5 @@ sum(vegtable$Self_Reported_Vegetarians)
 write.table(vegtable, file = "strictandselfreported.txt", 
             sep = "\t", col.names = TRUE, quote = FALSE,
             row.names = FALSE)
+
+#no longer need this since veg and strict veg combined in vegqc script
